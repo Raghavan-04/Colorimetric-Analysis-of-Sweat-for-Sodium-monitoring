@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Biosensor Interface (Live Dashboard)</title>
+    <style>
+        /* General Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; color: #2c3e50; line-height: 1.6; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+        /* Header & Status Bar */
+        .header { background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; padding: 30px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); }
+        .header h1 { color: #2c3e50; font-size: 2.2em; font-weight: 600; margin-bottom: 10px; }
+        .header p { color: #6c757d; font-size: 1.1em; }
+        .status-bar { display: flex; gap: 30px; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e9ecef; flex-wrap: wrap; }
+        .status-item { display: flex; align-items: center; gap: 12px; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #dc3545; border: 2px solid #ffffff; box-shadow: 0 0 0 2px #dc3545; transition: all 0.3s ease; }
+        .status-dot.connected { background: #28a745; box-shadow: 0 0 0 2px #28a745; }
+        .status-text { font-weight: 500; color: #495057; }
+
+        /* Panels and Grids */
+        .panel { background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); margin-bottom: 30px; }
+        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .sensor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .panel-title { font-size: 1.4em; color: #2c3e50; margin-bottom: 25px; font-weight: 600; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
+
+        /* Controls and Forms */
+        .input-group { display: flex; gap: 15px; align-items: center; }
+        .input-field { width: 100%; padding: 12px 16px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .input-field:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1); }
+
+        /* Buttons */
+        .button-group { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn { padding: 10px 20px; border: 1px solid; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px; transition: all 0.2s ease; background: #ffffff; text-align: center; min-width: 120px; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .btn:disabled { cursor: not-allowed; opacity: 0.6; transform: translateY(0); box-shadow: none; }
+        .btn-primary { background-color: #007bff; border-color: #007bff; color: #ffffff; }
+        .btn-success { background-color: #28a745; border-color: #28a745; color: #ffffff; }
+        .btn-warning { background-color: #ffc107; border-color: #ffc107; color: #212529; }
+        .btn-danger { background-color: #dc3545; border-color: #dc3545; color: #ffffff; }
+        .btn-secondary { background-color: #6c757d; border-color: #6c757d; color: #ffffff; }
+
+        /* Cards */
+        .biomarker-card, .metric-card { background: #ffffff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); }
+        .biomarker-card { border-left: 4px solid #007bff; }
+        .biomarker-value { font-size: 2.5em; font-weight: 700; color: #2c3e50; }
+        .biomarker-label { color: #495057; font-weight: 600; font-size: 1.1em; }
+        .metric-value { font-size: 1.8em; font-weight: 700; }
+        .metric-label { color: #6c757d; font-size: 0.9em; }
+        
+        /* Chart, Log, Modal */
+        .chart-container { height: 450px; position: relative; }
+        .log-container { height: 300px; overflow-y: auto; background: #2b303b; border: 1px solid #e9ecef; padding: 15px; font-family: 'Courier New', monospace; font-size: 13px; color: #c0c5ce; }
+        .log-entry { padding-bottom: 4px; }
+        .log-info { color: #61afef; }
+        .log-success { color: #98c379; }
+        .log-warning { color: #e5c07b; }
+        .log-error { color: #e06c75; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #ffffff; padding: 40px; border-radius: 8px; width: 90%; max-width: 500px; }
+        
+        .loading { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255, 255, 255, 0.3); border-top: 3px solid #ffffff; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 992px) { .main-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Medical Biosensor Interface</h1>
+            <p>Real-time Raw Sensor Dashboard</p>
+            <div class="status-bar">
+                <div class="status-item"><div class="status-dot" id="deviceStatus"></div><span class="status-text">Device: <span id="deviceStatusText">Disconnected</span></span></div>
+                <div class="status-item"><div class="status-dot" id="wifiStatus"></div><span class="status-text">WiFi: <span id="wifiStatusText">Unknown</span></span></div>
+                <div class="status-item"><div class="status-dot" id="calibrationStatus"></div><span class="status-text">Calibration: <span id="calibrationStatusText">Unknown</span></span></div>
+                <div class="status-item"><span class="status-text">Last Update: <span id="lastUpdateTime">--</span></span></div>
+            </div>
+        </div>
+
+        <!-- Connection Panel -->
+        <div class="panel">
+            <h3 class="panel-title">Device Connection</h3>
+            <div class="input-group">
+                <input type="text" class="input-field" id="deviceIP" placeholder="Enter ESP32 IP Address">
+                <button class="btn btn-primary" id="connectBtn" onclick="connectDevice()">
+                    <span id="connectText">Connect</span>
+                    <div class="loading" id="connectLoading" style="display: none;"></div>
+                </button>
+                <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectDevice()" disabled>Disconnect</button>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <div class="panel">
+                <h2 class="panel-title">Chart Control</h2>
+                <div class="button-group" style="margin-bottom: 30px;">
+                    <button id="startBtn" class="btn btn-success" onclick="startCharting()" disabled>Start Chart</button>
+                    <button id="stopBtn" class="btn btn-danger" onclick="stopCharting()" disabled>Stop Chart</button>
+                </div>
+                 <div class="button-group">
+                    <button id="calibBtn" class="btn btn-primary" onclick="calibrateSensors()" disabled>Calibrate</button>
+                    <button id="cleanBtn" class="btn btn-secondary" onclick="cleanSensors()" disabled>Clean Cycle</button>
+                </div>
+            </div>
+            <div class="panel">
+                <h2 class="panel-title">Biomarker Data</h2>
+                <div class="sensor-grid">
+                    <div class="biomarker-card" style="border-left-color: #6f42c1;"><div class="biomarker-value" id="sodiumValue">--</div><div class="biomarker-label">Sodium</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensor Details Grid -->
+        <div class="panel">
+            <h2 class="panel-title">Live Raw Sensor Data</h2>
+            <div class="sensor-grid">
+                <div class="metric-card"><div class="metric-value" id="colorimetricValue">--</div><div class="metric-label">Colorimetric (AU)</div></div>
+                <div class="metric-card"><div class="metric-value" id="tempValue">--</div><div class="metric-label">Temperature (°C)</div></div>
+                <div class="metric-card"><div class="metric-value" id="humidityValue">--</div><div class="metric-label">Humidity (%)</div></div>
+            </div>
+        </div>
+
+        <!-- Chart and Log -->
+        <div class="main-grid">
+            <div class="panel"><h2 class="panel-title">Real-time Chart</h2><div class="chart-container"><canvas id="trendChart"></canvas></div></div>
+            <div class="panel"><h3 class="panel-title">System Log</h3><div class="log-container" id="logContainer"></div></div>
+        </div>
+    </div>
+
+    <!-- Calibration Modal -->
+    <div id="calibrationModal" class="modal">
+        <div class="modal-content">
+            <h3 class="panel-title">Sensor Calibration</h3>
+            <p style="color: #6c757d; margin-bottom: 25px;">Place the sensor in the reference solution and click 'Start'.</p>
+            <div class="form-group">
+                <label class="form-label" for="refSolution">Reference Solution</label>
+                <select id="refSolution" class="form-select">
+                    <option value="ph_7.4">pH 7.4 Buffer</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-success" onclick="startCalibration()">Start</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // --- Global State ---
+        let ESP_URL = '', isConnected = false, isCharting = false;
+        let chart, dataInterval, statusInterval;
+        let dataBuffer = { glucose: [], cholesterol: [], sodium: [], timestamps: [] };
+        const MAX_BUFFER_SIZE = 100;
+
+        // --- DOM Elements Cache ---
+        const ui = {
+            connectBtn: document.getElementById('connectBtn'),
+            disconnectBtn: document.getElementById('disconnectBtn'),
+            connectText: document.getElementById('connectText'),
+            connectLoading: document.getElementById('connectLoading'),
+            deviceStatus: document.getElementById('deviceStatus'),
+            deviceStatusText: document.getElementById('deviceStatusText'),
+            wifiStatus: document.getElementById('wifiStatus'),
+            wifiStatusText: document.getElementById('wifiStatusText'),
+            calibrationStatus: document.getElementById('calibrationStatus'),
+            calibrationStatusText: document.getElementById('calibrationStatusText'),
+            lastUpdateTime: document.getElementById('lastUpdateTime'),
+            controlButtons: {
+                start: document.getElementById('startBtn'),
+                stop: document.getElementById('stopBtn'),
+                calibrate: document.getElementById('calibBtn'),
+                clean: document.getElementById('cleanBtn')
+            },
+            valueFields: {
+                glucose: document.getElementById('glucoseValue'),
+                cholesterol: document.getElementById('cholesterolValue'),
+                sodium: document.getElementById('sodiumValue'),
+                colorimetric: document.getElementById('colorimetricValue'),
+                chemilum: document.getElementById('chemilumValue'),
+                ph: document.getElementById('phValue'),
+                temp: document.getElementById('tempValue'),
+                humidity: document.getElementById('humidityValue')
+            }
+        };
+        
+        // --- Chart Functions ---
+        function initChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            chart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [
+                { label: 'Glucose', data: [], borderColor: '#007bff', backgroundColor: 'rgba(0, 123, 255, 0.1)', tension: 0.4, borderWidth: 2, fill: true },
+                { label: 'Cholesterol', data: [], borderColor: '#28a745', backgroundColor: 'rgba(40, 167, 69, 0.1)', tension: 0.4, borderWidth: 2, fill: true },
+                { label: 'Sodium', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.1)', tension: 0.4, borderWidth: 2, fill: true }
+            ]}, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: false } }, animation: { duration: 250 } }});
+        }
+        
+        // --- Connection Management ---
+        async function connectDevice() {
+            if (isConnected) return;
+            const ip = document.getElementById('deviceIP').value.trim();
+            if (!ip) { addLog('Please enter the ESP32 IP Address.', 'error'); return; }
+            ESP_URL = `http://${ip}`;
+
+            setUILoadingState(true);
+            addLog(`Connecting to ${ESP_URL}...`, 'info');
+            
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                const response = await fetch(`${ESP_URL}/api/test`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    isConnected = true;
+                    setUIControlActivation(true);
+                    addLog(`Successfully connected! Signal: ${data.rssi} dBm`, 'success');
+                    
+                    // =================================================================
+                    // --- FIX STARTS HERE: Start continuous updates on connect ---
+                    await fetchStatus();
+                    statusInterval = setInterval(fetchStatus, 5000); // Heartbeat for status
+                    dataInterval = setInterval(fetchData, 1000);    // Fetch data every 1 second
+                    // --- FIX ENDS HERE ---
+                    // =================================================================
+
+                } else { throw new Error('Device returned an unexpected response.'); }
+            } catch (error) {
+                handleDisconnection(false, `Connection failed: ${error.message}.`);
+            } finally {
+                setUILoadingState(false);
+            }
+        }
+
+        function disconnectDevice() { handleDisconnection(true); }
+
+        function handleDisconnection(isUserInitiated, message = "Disconnected by user.") {
+            if (!isConnected && !isUserInitiated) return;
+            isConnected = false;
+            isCharting = false; // Stop charting on disconnect
+            clearInterval(dataInterval);
+            clearInterval(statusInterval);
+            setUIControlActivation(false);
+            resetAllReadings();
+            addLog(message, isUserInitiated ? 'warning' : 'error');
+        }
+
+        // --- UI State Management ---
+        function setUILoadingState(isLoading) {
+            ui.connectText.style.display = isLoading ? 'none' : 'inline';
+            ui.connectLoading.style.display = isLoading ? 'block' : 'none';
+            ui.connectBtn.disabled = isLoading;
+        }
+
+        function setUIControlActivation(connected) {
+            ui.connectBtn.disabled = connected;
+            ui.disconnectBtn.disabled = !connected;
+            Object.values(ui.controlButtons).forEach(btn => btn.disabled = !connected);
+            ui.deviceStatus.classList.toggle('connected', connected);
+            ui.deviceStatusText.textContent = connected ? 'Connected' : 'Disconnected';
+            if (!connected) {
+                ui.wifiStatus.classList.remove('connected');
+                ui.wifiStatusText.textContent = 'Unknown';
+                ui.calibrationStatus.classList.remove('connected');
+                ui.calibrationStatusText.textContent = 'Unknown';
+            }
+        }
+
+        // --- Status and Data Fetching ---
+        async function fetchStatus() {
+            if (!isConnected) return;
+            try {
+                const response = await fetch(`${ESP_URL}/api/status`);
+                if (!response.ok) throw new Error(`Status check failed: ${response.status}`);
+                const status = await response.json();
+                ui.wifiStatus.classList.toggle('connected', status.connected);
+                ui.wifiStatusText.textContent = status.connected ? `Connected (${status.wifiRSSI} dBm)` : 'Disconnected';
+                ui.calibrationStatus.classList.toggle('connected', status.calibrated);
+                ui.calibrationStatusText.textContent = status.calibrated ? 'Calibrated' : 'Required';
+            } catch (error) {
+                handleDisconnection(false, 'Connection to device lost.');
+            }
+        }
+
+        async function fetchData() {
+            if (!isConnected) return;
+            try {
+                const response = await fetch(`${ESP_URL}/api/sensors`);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                updateReadings(await response.json());
+            } catch (error) {
+                addLog(`Failed to fetch sensor data: ${error.message}`, 'error');
+            }
+        }
+
+        // --- Command Functions ---
+        async function sendControlCommand(endpoint, body = null) {
+            if (!isConnected) { addLog('Connect to a device first!', 'error'); return null; }
+            try {
+                const options = { method: 'POST', body: body ? JSON.stringify(body) : null };
+                if (body) options.headers = { 'Content-Type': 'application/json' };
+                const response = await fetch(`${ESP_URL}/api/${endpoint}`, options);
+                if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                addLog(`Command '${endpoint}' failed: ${error.message}`, 'error');
+                handleDisconnection(false, 'Connection lost while sending command.');
+                return null;
+            }
+        }
+        
+        // --- MODIFIED: Charting Control ---
+        function startCharting() {
+            if (isCharting) return;
+            isCharting = true;
+            addLog('Charting started.', 'success');
+            ui.controlButtons.start.disabled = true;
+            ui.controlButtons.stop.disabled = false;
+        }
+
+        function stopCharting() {
+            if (!isCharting) return;
+            isCharting = false;
+            addLog('Charting stopped.', 'warning');
+            ui.controlButtons.start.disabled = false;
+            ui.controlButtons.stop.disabled = true;
+        }
+        
+        function calibrateSensors() { document.getElementById('calibrationModal').style.display = 'flex'; }
+        
+        async function startCalibration() {
+            const solution = document.getElementById('refSolution').value;
+            closeModal();
+            addLog(`Requesting calibration with ${solution}...`, 'info');
+            const result = await sendControlCommand('calibrate', { solution });
+            if (result) addLog('Calibration sequence initiated on device.', 'success');
+        }
+
+        async function cleanSensors() {
+            addLog('Requesting sensor cleaning cycle...', 'info');
+            const result = await sendControlCommand('clean');
+            if (result) addLog('Cleaning cycle completed.', 'success');
+        }
+
+        // --- Data Display and UI ---
+        function updateReadings(data) {
+            ui.lastUpdateTime.textContent = new Date().toLocaleTimeString();
+            ui.valueFields.glucose.textContent = data.glucose.toFixed(1);
+            ui.valueFields.cholesterol.textContent = data.cholesterol.toFixed(1);
+            ui.valueFields.sodium.textContent = data.sodium.toFixed(1);
+            
+            const sensors = data.sensors;
+            ui.valueFields.colorimetric.textContent = sensors.colorimetric.toFixed(3);
+            ui.valueFields.chemilum.textContent = sensors.chemiluminescent.toFixed(0);
+            ui.valueFields.ph.textContent = sensors.ph.toFixed(2);
+            ui.valueFields.temp.textContent = sensors.temperature.toFixed(1);
+            ui.valueFields.humidity.textContent = sensors.humidity.toFixed(1);
+
+            // MODIFIED: Only update the chart if charting is active
+            if (isCharting) {
+                const timeString = ui.lastUpdateTime.textContent;
+                dataBuffer.timestamps.push(timeString);
+                dataBuffer.glucose.push(data.glucose);
+                dataBuffer.cholesterol.push(data.cholesterol);
+                dataBuffer.sodium.push(data.sodium);
+                if (dataBuffer.timestamps.length > MAX_BUFFER_SIZE) {
+                    Object.keys(dataBuffer).forEach(key => dataBuffer[key].shift());
+                }
+
+                chart.data.labels = dataBuffer.timestamps;
+                chart.data.datasets[0].data = dataBuffer.glucose;
+                chart.data.datasets[1].data = dataBuffer.cholesterol;
+                chart.data.datasets[2].data = dataBuffer.sodium;
+                chart.update();
+            }
+        }
+
+        function resetAllReadings() {
+             Object.values(ui.valueFields).forEach(field => field.textContent = '--');
+             ui.lastUpdateTime.textContent = '--';
+             dataBuffer = { glucose: [], cholesterol: [], sodium: [], timestamps: [] };
+             chart.data.labels = [];
+             chart.data.datasets.forEach(dataset => dataset.data = []);
+             chart.update();
+        }
+
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function closeModal() { document.getElementById('calibrationModal').style.display = 'none'; }
+        
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            addLog('Interface initialized. Enter ESP32 IP and connect.', 'info');
+        });
+    </script>
+</body>
+</html>

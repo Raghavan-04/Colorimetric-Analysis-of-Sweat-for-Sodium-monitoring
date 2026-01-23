@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Biosensor Interface</title>
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header & Status Bar */
+        .header {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 30px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 2px #dc3545;
+        }
+
+        .status-dot.connected {
+            background: #28a745;
+            box-shadow: 0 0 0 2px #28a745;
+        }
+
+        .status-text {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        /* Panels and Grids */
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .panel-title {
+            font-size: 1.4em;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        /* Controls and Forms */
+        .control-group {
+            margin-bottom: 30px;
+        }
+
+        .control-label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #495057;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .input-field, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .input-field:focus, .form-select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-primary { background-color: #007bff; border-color: #007bff; color: #ffffff; }
+        .btn-success { background-color: #28a745; border-color: #28a745; color: #ffffff; }
+        .btn-warning { background-color: #ffc107; border-color: #ffc107; color: #212529; }
+        .btn-danger { background-color: #dc3545; border-color: #dc3545; color: #ffffff; }
+        .btn-secondary { background-color: #6c757d; border-color: #6c757d; color: #ffffff; }
+
+        /* Biomarker & Sensor Cards */
+        .biomarker-card, .sensor-card, .metric-card {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .biomarker-card {
+            border-left: 4px solid #007bff;
+        }
+
+        .biomarker-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .biomarker-label {
+            color: #495057;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* Chart, Log, Modal & Tabs */
+        .chart-container {
+            height: 450px;
+        }
+
+        .log-container {
+            height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        
+        .log-entry { padding-bottom: 4px; }
+        .log-info { color: #17a2b8; }
+        .log-success { color: #28a745; }
+        .log-warning { color: #ffc107; }
+        .log-error { color: #dc3545; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 25px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-weight: 500;
+            color: #6c757d;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: #007bff;
+            border-bottom-color: #007bff;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Medical Biosensor Interface</h1>
+            <p>Multi-modal biomarker detection and analysis dashboard</p>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot" id="deviceStatus"></div>
+                    <span class="status-text">Device: <span id="deviceStatusText">Disconnected</span></span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" id="wifiStatus"></div>
+                    <span class="status-text">WiFi: <span id="wifiStatusText">Unknown</span></span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" id="calibrationStatus"></div>
+                    <span class="status-text">Calibration: <span id="calibrationStatusText">Unknown</span></span>
+                </div>
+                <div class="status-item">
+                    <span class="status-text">Last Update: <span id="lastUpdateTime">--</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connection Panel -->
+        <div class="panel" id="connection-panel">
+            <h3 class="panel-title">Device Connection</h3>
+            <div class="input-group">
+                <input type="text" class="input-field" id="deviceIP" placeholder="Enter ESP32 IP Address" value="">
+                <input type="text" class="input-field" id="devicePort" placeholder="Port" value="80" style="max-width: 100px;">
+                <button class="btn btn-primary" id="connectBtn" onclick="connectDevice()">
+                    <span id="connectText">Connect</span>
+                    <div class="loading" id="connectLoading" style="display: none;"></div>
+                </button>
+                <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectDevice()" disabled>Disconnect</button>
+                <button class="btn btn-secondary" onclick="testConnection()">Test</button>
+            </div>
+        </div>
+
+        <!-- Main Grid: Controls & Live Readings -->
+        <div class="main-grid">
+            <div class="panel">
+                <h2 class="panel-title">Control Panel</h2>
+                <div class="control-group">
+                    <div class="control-label">Measurement Control</div>
+                    <div class="button-group">
+                        <button class="btn btn-success" onclick="startMeasurement()">Start</button>
+                        <button class="btn btn-warning" onclick="pauseMeasurement()">Pause</button>
+                        <button class="btn btn-danger" onclick="stopMeasurement()">Stop</button>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="control-label">System Maintenance</div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="calibrateSensors()">Calibrate</button>
+                        <button class="btn btn-secondary" onclick="cleanSensors()">Clean Cycle</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <h2 class="panel-title">Live Biomarker Readings</h2>
+                <div class="biomarker-readings sensor-grid">
+                    <div class="biomarker-card glucose" style="border-left-color: #007bff;">
+                        <div class="biomarker-value" id="glucoseValue">--</div>
+                        <div class="biomarker-label">Glucose (mg/dL)</div>
+                    </div>
+                    <div class="biomarker-card cholesterol" style="border-left-color: #28a745;">
+                        <div class="biomarker-value" id="cholesterolValue">--</div>
+                        <div class="biomarker-label">Cholesterol (mg/dL)</div>
+                    </div>
+                    <div class="biomarker-card sodium" style="border-left-color: #6f42c1;">
+                        <div class="biomarker-value" id="sodiumValue">--</div>
+                        <div class="biomarker-label">Sodium (mEq/L)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sensor Details Grid -->
+        <div class="panel">
+            <h2 class="panel-title">Raw Sensor Data</h2>
+            <div class="sensor-grid">
+                 <div class="metric-card">
+                    <div class="metric-value" id="colorimetricValue">--</div>
+                    <div class="metric-label">Colorimetric (AU)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="chemilumValue">--</div>
+                    <div class="metric-label">Chemiluminescent (RLU)</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-value" id="phValue">--</div>
+                    <div class="metric-label">pH Level</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="tempValue">--</div>
+                    <div class="metric-label">Temperature (°C)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Section: Chart, Data, Settings, Export -->
+        <div class="panel">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('chartTab', event)">Real-time Chart</button>
+                <button class="tab" onclick="showTab('settingsTab', event)">Settings</button>
+                <button class="tab" onclick="showTab('exportTab', event)">Data Export</button>
+            </div>
+
+            <!-- Chart Tab -->
+            <div id="chartTab" class="tab-content active">
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settingsTab" class="tab-content">
+                <div class="control-group">
+                    <div class="control-label">Device Settings</div>
+                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label class="form-label" for="measurementInterval">Measurement Interval (ms)</label>
+                            <input type="number" class="input-field" id="measurementInterval" value="1500">
+                        </div>
+                    </div>
+                    <div class="button-group" style="margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="applySettings()">Apply Settings</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Tab -->
+            <div id="exportTab" class="tab-content">
+                <div class="control-group">
+                    <div class="control-label">Data Statistics</div>
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="totalSamples">0</div>
+                            <div class="metric-label">Total Samples</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="sessionTime">00:00:00</div>
+                            <div class="metric-label">Session Duration</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Log -->
+        <div class="panel">
+            <h3 class="panel-title">System Log</h3>
+            <div class="log-container" id="logContainer"></div>
+        </div>
+    </div>
+
+    <!-- Calibration Modal -->
+    <div id="calibrationModal" class="modal">
+        <div class="modal-content">
+            <h3 class="panel-title">Sensor Calibration</h3>
+            <p style="color: #6c757d; margin-bottom: 25px;">Place the reference solution and initiate calibration sequence.</p>
+            <div class="form-group">
+                <label class="form-label" for="refSolution">Reference Solution</label>
+                <select id="refSolution" class="form-select">
+                    <option value="glucose_100">Glucose 100 mg/dL Standard</option>
+                    <option value="cholesterol_200">Cholesterol 200 mg/dL Standard</option>
+                    <option value="sodium_140">Sodium 140 mEq/L Standard</option>
+                    <option value="ph_7.4">pH 7.4 Buffer</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-success" onclick="startCalibration()">Start Calibration</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        // --- Global State & Configuration ---
+        let ESP_URL = ''; 
+        let isConnected = false;
+        let measurementActive = false;
+        let chart;
+        let sessionStartTime = null;
+        let dataInterval; // For sensor data polling
+        let statusInterval; // For system status polling
+        let dataBuffer = { glucose: [], cholesterol: [], sodium: [], timestamps: [] };
+        const MAX_BUFFER_SIZE = 100; // Keep the last 100 data points on the chart
+
+        // --- Chart Functions ---
+        function initChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Glucose (mg/dL)',
+                        data: [],
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        fill: true,
+                    }, {
+                        label: 'Cholesterol (mg/dL)',
+                        data: [],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        fill: true,
+                    }, {
+                        label: 'Sodium (mEq/L)',
+                        data: [],
+                        borderColor: '#6f42c1',
+                        backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: false, title: { display: true, text: 'Concentration' } },
+                        x: { title: { display: true, text: 'Time' } }
+                    },
+                    animation: {
+                        duration: 250 // Smoother transitions
+                    }
+                }
+            });
+        }
+        
+        // --- Connection Management ---
+        async function connectDevice() {
+            const ip = document.getElementById('deviceIP').value;
+            const port = document.getElementById('devicePort').value;
+            if (!ip) {
+                addLog('Please enter the ESP32 IP Address.', 'error');
+                return;
+            }
+            ESP_URL = `http://${ip}:${port}`;
+
+            const connectBtn = document.getElementById('connectBtn');
+            const connectText = document.getElementById('connectText');
+            const connectLoading = document.getElementById('connectLoading');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+
+            connectText.style.display = 'none';
+            connectLoading.style.display = 'block';
+            connectBtn.disabled = true;
+
+            addLog(`Attempting to connect to ESP32 at ${ESP_URL}...`, 'info');
+            
+            try {
+                // Use a timeout for the fetch request
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
+                const response = await fetch(`${ESP_URL}/api/test`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                
+                const data = await response.json();
+                if (data.status === 'ok') {
+                    isConnected = true;
+                    updateConnectionStatus(true);
+                    addLog(`Successfully connected to device. Signal: ${data.rssi} dBm`, 'success');
+                    
+                    disconnectBtn.disabled = false;
+                    
+                    // Start polling for system status
+                    await fetchStatus();
+                    statusInterval = setInterval(fetchStatus, 5000);
+                } else {
+                    throw new Error('Device returned an unexpected response.');
+                }
+            } catch (error) {
+                isConnected = false;
+                updateConnectionStatus(false);
+                addLog(`Connection failed: ${error.message}. Check IP and network.`, 'error');
+                connectBtn.disabled = false;
+            } finally {
+                connectText.style.display = 'inline';
+                connectLoading.style.display = 'none';
+            }
+        }
+
+        function disconnectDevice() {
+            if (measurementActive) stopMeasurement();
+            isConnected = false;
+            clearInterval(dataInterval);
+            clearInterval(statusInterval);
+            updateConnectionStatus(false);
+            
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('disconnectBtn').disabled = true;
+
+            addLog('Device disconnected by user.', 'warning');
+        }
+
+        async function testConnection() {
+            const ip = document.getElementById('deviceIP').value;
+            const port = document.getElementById('devicePort').value;
+            if (!ip) {
+                addLog('Please enter an IP to test.', 'error');
+                return;
+            }
+            const testUrl = `http://${ip}:${port}`;
+            addLog(`Pinging device at ${testUrl}...`, 'info');
+            try {
+                 const response = await fetch(`${testUrl}/api/test`);
+                 if (!response.ok) throw new Error(`Device unreachable. Status: ${response.status}`);
+                 const data = await response.json();
+                 addLog(`Connection test successful. Signal: ${data.rssi} dBm.`, 'success');
+            } catch (error) {
+                 addLog(`Connection test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // --- UI Update Functions ---
+        function updateConnectionStatus(connected) {
+            const dot = document.getElementById('deviceStatus');
+            dot.classList.toggle('connected', connected);
+            document.getElementById('deviceStatusText').textContent = connected ? 'Connected' : 'Disconnected';
+            if (!connected) {
+                // Reset other statuses if disconnected
+                document.getElementById('wifiStatus').classList.remove('connected');
+                document.getElementById('wifiStatusText').textContent = 'Unknown';
+                document.getElementById('calibrationStatus').classList.remove('connected');
+                document.getElementById('calibrationStatusText').textContent = 'Unknown';
+            }
+        }
+
+        async function fetchStatus() {
+            if (!isConnected) return;
+            try {
+                const response = await fetch(`${ESP_URL}/api/status`);
+                if (!response.ok) {
+                    addLog('Lost connection to device.', 'error');
+                    disconnectDevice();
+                    return;
+                }
+                
+                const status = await response.json();
+                
+                // WiFi Status
+                const wifiDot = document.getElementById('wifiStatus');
+                wifiDot.classList.toggle('connected', status.connected);
+                document.getElementById('wifiStatusText').textContent = status.connected ? `Connected (${status.wifiRSSI} dBm)` : 'Disconnected';
+                
+                // Calibration Status
+                const calibDot = document.getElementById('calibrationStatus');
+                calibDot.classList.toggle('connected', status.calibrated);
+                document.getElementById('calibrationStatusText').textContent = status.calibrated ? 'Calibrated' : 'Required';
+
+            } catch (error) {
+                addLog('Could not fetch device status. Connection may be lost.', 'error');
+                disconnectDevice();
+            }
+        }
+
+        // --- Measurement Control ---
+        async function sendControlCommand(endpoint, body = null) {
+            if (!isConnected) {
+                addLog('Connect to a device first!', 'error');
+                return null;
+            }
+            try {
+                const options = { method: 'POST' };
+                if (body) {
+                    options.headers = { 'Content-Type': 'application/json' };
+                    options.body = JSON.stringify(body);
+                }
+                const response = await fetch(`${ESP_URL}/api/${endpoint}`, options);
+                if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                addLog(`Error sending command '${endpoint}': ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function startMeasurement() {
+            if (measurementActive) {
+                addLog('Measurement is already active.', 'warning');
+                return;
+            }
+            const result = await sendControlCommand('start');
+            if (result && result.status === 'started') {
+                measurementActive = true;
+                if (!sessionStartTime) sessionStartTime = new Date();
+                addLog('Measurement started.', 'success');
+                await fetchData(); // Fetch first data point immediately
+                dataInterval = setInterval(fetchData, 1500);
+                updateSessionTime();
+            }
+        }
+
+        async function pauseMeasurement() {
+            if (!measurementActive) return;
+            const result = await sendControlCommand('pause');
+            if (result && result.status === 'paused') {
+                measurementActive = false;
+                clearInterval(dataInterval);
+                addLog('Measurement paused.', 'warning');
+            }
+        }
+
+        async function stopMeasurement() {
+            const result = await sendControlCommand('stop');
+            if (result) {
+                measurementActive = false;
+                clearInterval(dataInterval);
+                sessionStartTime = null;
+                addLog('Measurement stopped.', 'warning');
+            }
+        }
+
+        // --- Data Handling ---
+        async function fetchData() {
+            if (!isConnected || !measurementActive) {
+                clearInterval(dataInterval);
+                return;
+            }
+            try {
+                const response = await fetch(`${ESP_URL}/api/sensors`);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const data = await response.json();
+                updateReadings(data);
+            } catch (error) {
+                addLog(`Failed to fetch sensor data: ${error.message}`, 'error');
+                pauseMeasurement();
+            }
+        }
+
+        function updateReadings(data) {
+            const time = new Date();
+            const timeString = time.toLocaleTimeString();
+
+            document.getElementById('glucoseValue').textContent = data.glucose.toFixed(1);
+            document.getElementById('cholesterolValue').textContent = data.cholesterol.toFixed(1);
+            document.getElementById('sodiumValue').textContent = data.sodium.toFixed(1);
+            
+            document.getElementById('colorimetricValue').textContent = data.sensors.colorimetric.toFixed(3);
+            document.getElementById('chemilumValue').textContent = data.sensors.chemiluminescent.toFixed(0);
+            document.getElementById('phValue').textContent = data.sensors.ph.toFixed(2);
+            document.getElementById('tempValue').textContent = data.sensors.temperature.toFixed(1);
+            
+            document.getElementById('lastUpdateTime').textContent = timeString;
+
+            dataBuffer.timestamps.push(timeString);
+            dataBuffer.glucose.push(data.glucose);
+            dataBuffer.cholesterol.push(data.cholesterol);
+            dataBuffer.sodium.push(data.sodium);
+            
+            if (dataBuffer.timestamps.length > MAX_BUFFER_SIZE) {
+                Object.keys(dataBuffer).forEach(key => dataBuffer[key].shift());
+            }
+
+            chart.data.labels = dataBuffer.timestamps;
+            chart.data.datasets[0].data = dataBuffer.glucose;
+            chart.data.datasets[1].data = dataBuffer.cholesterol;
+            chart.data.datasets[2].data = dataBuffer.sodium;
+            chart.update();
+            
+            document.getElementById('totalSamples').textContent = (parseInt(document.getElementById('totalSamples').textContent) || 0) + 1;
+        }
+
+        // --- Maintenance & Settings ---
+        function calibrateSensors() {
+            if (!isConnected) {
+                addLog('Connect to a device first!', 'error');
+                return;
+            }
+            document.getElementById('calibrationModal').style.display = 'flex';
+        }
+        
+        async function startCalibration() {
+            const solution = document.getElementById('refSolution').value;
+            addLog(`Requesting calibration with ${solution}...`, 'info');
+            closeModal();
+            const result = await sendControlCommand('calibrate', { solution });
+            if (result && result.status === 'calibration_started') {
+                addLog('Calibration sequence initiated on device. Status will update shortly.', 'success');
+            }
+        }
+
+        async function cleanSensors() {
+            addLog('Requesting sensor cleaning cycle...', 'info');
+            const result = await sendControlCommand('clean');
+            if (result && result.status === 'cleaning_complete') {
+                addLog('Cleaning cycle completed successfully.', 'success');
+            }
+        }
+
+        async function applySettings() {
+            const interval = document.getElementById('measurementInterval').value;
+            addLog(`Applying new measurement interval: ${interval} ms`, 'info');
+            const result = await sendControlCommand('settings', { interval: parseInt(interval) });
+             if (result && result.status === 'settings_updated') {
+                addLog('Settings updated successfully on the device.', 'success');
+            }
+        }
+
+        // --- UI & Utility Functions ---
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-${type}">${new Date().toLocaleTimeString()}: ${message}</span>`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function showTab(tabId, event) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('calibrationModal').style.display = 'none';
+        }
+
+        function updateSessionTime() {
+             if (sessionStartTime) {
+                const now = new Date();
+                const diff = now - sessionStartTime;
+                const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
+                const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+                const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                document.getElementById('sessionTime').textContent = `${hours}:${minutes}:${seconds}`;
+            } else {
+                 document.getElementById('sessionTime').textContent = '00:00:00';
+             }
+             if (measurementActive) {
+                requestAnimationFrame(updateSessionTime);
+            }
+        }
+        
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            addLog('Interface initialized. Enter ESP32 IP and connect.', 'info');
+        });
+    </script>
+</body>
+</html>```
