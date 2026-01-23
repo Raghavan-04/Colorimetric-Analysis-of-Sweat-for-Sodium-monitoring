@@ -4,66 +4,86 @@
 ![Project Year](https://img.shields.io/badge/Year-November%202025-blue)
 ![Affiliation](https://img.shields.io/badge/Affiliation-PSG%20College%20of%20Technology-red)
 
-**Project Name:** Colorimetric Analysis of Sweat for Sodium Monitoring with Integrated User Interface
+**Project Title:** Colorimetric Analysis of Sweat for Sodium Monitoring with Integrated User Interface
 **Course:** 19L720 - PROJECT WORK 1
 **Batch Number:** 19
 
 ---
 
-## 💡 Project Summary & Clinical Significance
+## 💡 Project Summary & Clinical Need
 
-This project presents a novel, strip-based, **multi-modal biosensing platform** for the non-invasive, quantitative detection of **sodium (Na⁺) in human sweat**. The primary goal is to bridge the gap between laboratory-grade precision and point-of-care usability to enable early detection of electrolyte imbalance (Hyponatremia/Hypernatremia) and associated risks.
+This work presents a novel, **strip-based, multimodal biosensing platform** for the **non-invasive, quantitative detection of sodium (Na⁺) in human sweat**. The system is designed for **point-of-care** usability, bridging laboratory-grade precision with portability to enable the early detection of electrolyte imbalance (Hyponatremia/Hypernatremia) and hyperuricemia risk.
 
-### Clinical Need & Impact
-*   **Hyponatremia/Hypernatremia:** These are common electrolyte disorders affecting high-risk populations (elderly, chronic illness patients) with mortality rates as high as **40% to 60%** in severe cases.
-*   **Non-Invasive Diagnostics:** Sweat monitoring offers a real-time, painless, and continuous alternative to traditional blood sampling.
-*   **Target:** The system directly addresses the need for a **low-cost, portable solution** for tracking at-risk individuals outside the hospital.
+The primary innovation is the **Dynamic Environmental Integration**—combining chemical colorimetry with real-time temperature and humidity sensing to mitigate the largest source of error: **sweat sample evaporation.**
 
-## 📐 Multi-Modal Biosensing Platform Architecture
+## 🔬 Core Quantification Model: Kubelka-Munk Theory
 
-The system is built on a **colorimetric sensing platform** that uses an optical module integrated with environmental sensing to correct for real-world inaccuracies.
+Unlike transparent liquid samples which use the Beer-Lambert Law (Absorption), this project utilizes a model for opaque, reflective surfaces (test strips):
+
+*   **Model:** **Kubelka-Munk (K-M) Theory.**
+*   **Principle:** The K-M function relates the measured Reflectance (**R**) of the test strip to two key coefficients: Absorption (**K**) and Scattering (**S**).
+*   **Key Relationship:** The final sodium concentration is directly proportional to the calculated ratio:
+    $$
+    \text{Sodium Concentration} \propto \frac{K}{S} = \frac{(1 - R)^2}{2R}
+    $$
+    The **ESP32** calculates this K/S value from the raw photodiode voltage to achieve robust, scientifically accurate concentration readings.
+
+## 📡 Multi-Modal System Architecture & Signal Chain
+
+The platform integrates optical, electronic, and environmental sensing components to create a unified measurement pipeline.
 
 ### 1. Optical Sensing Module (The Core)
-*   **Method:** **Sodium Paper-Strip Colorimetry.** Sweat samples cause a color change on the strip proportional to the Na⁺ concentration.
-*   **Hardware:** A dedicated **LED-Photodiode Optical Module** with precisely aligned geometry illuminates the strip and measures the reflected light intensity.
-*   **Quantification Theory:** The system utilizes the **Kubelka-Munk (K-M) theory** to convert the measured light Reflectance (R) into an equivalent Absorption value (K/S), which is directly proportional to the sodium concentration.
+| Component | Function | Detail |
+| :--- | :--- | :--- |
+| **Sensing Platform** | Colorimetric Strip & Sweat Sample | Produces a color change proportional to Na⁺ concentration. |
+| **LED-Photodiode Module** | Light Illumination & Reflection Measurement | Precisely aligned LED/Photodiode geometry measures reflected light intensity. |
+| **TIA Front End** | Analog Signal Conversion | Converts the low-level electrical current from the Photodiode into a proportional, stable voltage signal. |
+| **External ADC** | Digitization | Converts the analog voltage signal into a digital (binary) magnitude for the processor. |
 
-### 2. Signal Processing & Quantification
-*   **Signal Conversion:** The electrical signal from the photodiode is converted into a stable Voltage Signal via a **TIA Front End** (Transimpedance Amplifier).
-*   **Digitization:** The voltage is fed into an **External ADC** (Analog-to-Digital Converter) to produce a magnitude in binary.
-*   **Processing Unit:** An **ESP32 Processing Unit** handles real-time data acquisition and pre-processing.
-*   **Quantification:** Processed digital values are mapped to a final Na⁺ concentration (in mmol/L) using **Calibration Models** developed from synthetic sweat standards.
+### 2. Processing & Communication
+| Component | Function | Detail |
+| :--- | :--- | :--- |
+| **Processing Unit** | **ESP32 Microcontroller** | Handles real-time data acquisition, signal preprocessing, K/S calculation, and classification against physiological ranges. |
+| **Wireless Comm.** | Wi-Fi/BLE | **ESP32** transmits final sodium concentration and environmental data to the Web Dashboard. |
 
-### 3. Environmental Integration (Novelty)
-*   **Component:** Environmental Sensors (Temperature and Humidity Sensors).
-*   **Purpose:** The novelty lies in combining colorimetry with live environmental data to address the biggest real-world error source: **sweat sample evaporation** (which falsely concentrates the sodium).
-*   **Future Functionality:** The environmental data enables **Error Flagging** for anomalous readings and can be used to apply an **Advanced Correction Factor** to compensate for estimated evaporative loss.
-
-## ✨ Project Objectives & Goals
-
-| Category | Goal |
-| :--- | :--- |
-| **Integration Challenge** | Develop a compact **LED-photodiode optical system** that minimizes cross-interference and maintains quantitative accuracy for sodium sensing. |
-| **Performance Goals** | Achieve high sensitivity and specificity for sodium within physiological ranges, comparable to clinical laboratory standards, enabling rapid, real-time analysis. |
-| **Clinical Translation** | Deliver a **portable, user-friendly diagnostic device** suitable for non-invasive, point-of-care testing outside specialized laboratories. |
-| **Economic Impact** | Reduce overall diagnostic costs by replacing bulky, multi-instrument setups with a single low-cost, integrated, and scalable platform. |
-
-## 🌐 Web-Based User Interface (Wireless Dashboard)
-
-The project includes an integrated user interface for real-time visualization:
-*   **Web Technologies:** Dynamic dashboard built using **HTML, CSS, and JavaScript**.
-*   **Connectivity:** The UI communicates with the **ESP32** via a **REST API** (`/api/sensors`, `/api/status`) hosted directly on the microcontroller.
-*   **Real-Time Visualization:** Enables live data display of Colorimetric (AU), Temperature (°C), and Humidity (%).
-*   **Robustness Features:** Implements a **System Log Panel** to display real-time hardware errors and a **"heartbeat" system** to automatically detect and report connection loss.
-
-## 🛠️ Feasibility and Future Scope
-
-*   **Feasibility:** Confirmed using low-cost, readily available components like the **ESP32** and standard optical components (Photodiode, LEDs).
-*   **Extended Scope (Future):** Expansion with additional sensing modalities (electrochemical sensors), Machine Learning for decision support, and miniaturization into a dedicated wearable/point-of-care device.
+### 3. Environmental Integration (Robustness)
+| Sensor | Data Logged | Purpose |
+| :--- | :--- | :--- |
+| **Temperature/Humidity** | Analog equivalent of ambient conditions. | **Error Flagging:** Logs conditions to explain anomalous high readings (due to evaporation). **Correction:** Provides data for a future advanced correction model. |
 
 ---
 
-## 🧑‍💻 Team Members & Guide
+## 🧪 Proposed Real-World Methodology
+
+The final implementation and user-procedure are designed to mitigate real-world errors:
+
+1.  **Preparation & Collection:** User cleans skin patch and collects sweat via absorbent pads/direct strip contact.
+2.  **Calibration (Two-Point):** The device performs **Dark Calibration (0% Reflectance)** with the LED off (to zero out electronic noise) and **White Calibration (100% Reflectance)** using a clean strip (to standardize LED brightness).
+3.  **Timed Reaction:** The device enforces a precise, pre-programmed incubation time (e.g., 45 seconds) after sample application before taking the reading, controlling for the **Evaporation Challenge**.
+4.  **Measurement:** The appropriate color LED (likely Blue) is turned on, and the photodiode measures the reflected voltage ($V_{\text{sample}}$).
+5.  **Final Calculation:** The ESP32 calculates the true reflectance ($R$) using the calibrated voltages and plugs this into the K-M equation to determine the final Sodium Concentration.
+
+## ⚠️ Real-World Challenges and Robustness
+
+The design explicitly addresses the most common sources of inaccuracy in portable biosensors:
+
+| Error Category | Challenge Addressed | Solution/Design Feature |
+| :--- | :--- | :--- |
+| **Sample/User Errors** | **Evaporation:** Rapid water loss concentrates Na⁺. | **Timed Reaction** programmed into the firmware to ensure consistent incubation. |
+| **Optical Errors** | **Ambient Light Leakage:** External light skews readings. | **3D-Printed Custom Enclosure** designed to be light-tight, preventing external light interference (as shown in 3D-Simulation). |
+| **Electronic Errors** | **LED Brightness Drift:** LED intensity changes with temperature/age. | **Two-Point Calibration** (Dark/White) performed frequently to normalize the photodiode reading ($R$ is a ratio of voltages). |
+| **Calibration Errors** | **Non-Linearity:** The K/S vs. Concentration graph curves at extremes. | The system defines a precise **"Linear Range"** and advises users/systems to only use the linear regression within that range for maximum accuracy. |
+| **Chemical Errors** | **Chemical Interference:** Other ions (K⁺, Cl⁻) in sweat. | Rely on the **High Selectivity** of the sodium ionophore reagent on the test strip. |
+
+## 🌐 Web-Based User Interface ("Wireless Dashboard")
+
+The ESP32 hosts a lightweight web server and REST API for comprehensive user feedback.
+
+*   **Data Visualization:** Displays real-time sensor data (Colorimetric AU, Temperature, Humidity) and the final calculated **Sodium (Na⁺) concentration**.
+*   **Control Panel:** Includes controls for **Start Chart, Stop Chart, Calibrate, and Clean Cycle**.
+*   **System Log:** Integrated log panel displays real-time status messages, connection events, and hardware errors from the ESP32, aiding diagnostics.
+
+## 🧑‍💻 Team Members & Faculty Guide
 
 | Role | Name | Roll Number |
 | :--- | :--- | :--- |
