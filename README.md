@@ -4,9 +4,6 @@
 ![Project Year](https://img.shields.io/badge/Year-November%202025-blue)
 ![Affiliation](https://img.shields.io/badge/Affiliation-PSG%20College%20of%20Technology-red)
 
-**Project Title:** Colorimetric Analysis of Sweat for Sodium Monitoring with Integrated User Interface
-
-
 ---
 
 ## 💡 Project Summary & Clinical Need
