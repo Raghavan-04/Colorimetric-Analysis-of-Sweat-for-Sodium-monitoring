@@ -5,8 +5,7 @@
 ![Affiliation](https://img.shields.io/badge/Affiliation-PSG%20College%20of%20Technology-red)
 
 **Project Title:** Colorimetric Analysis of Sweat for Sodium Monitoring with Integrated User Interface
-**Course:** 19L720 - PROJECT WORK 1
-**Batch Number:** 19
+
 
 ---
 
