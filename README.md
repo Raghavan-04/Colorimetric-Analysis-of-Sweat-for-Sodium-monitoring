@@ -6,13 +6,13 @@
 
 ---
 
-## 💡 Project Summary & Clinical Need
+##  Project Summary & Clinical Need
 
 This work presents a novel, **strip-based, multimodal biosensing platform** for the **non-invasive, quantitative detection of sodium (Na⁺) in human sweat**. The system is designed for **point-of-care** usability, bridging laboratory-grade precision with portability to enable the early detection of electrolyte imbalance (Hyponatremia/Hypernatremia) and hyperuricemia risk.
 
 The primary innovation is the **Dynamic Environmental Integration**—combining chemical colorimetry with real-time temperature and humidity sensing to mitigate the largest source of error: **sweat sample evaporation.**
 
-## 🔬 Core Quantification Model: Kubelka-Munk Theory
+##  Core Quantification Model: Kubelka-Munk Theory
 
 Unlike transparent liquid samples which use the Beer-Lambert Law (Absorption), this project utilizes a model for opaque, reflective surfaces (test strips):
 
@@ -24,7 +24,7 @@ Unlike transparent liquid samples which use the Beer-Lambert Law (Absorption), t
     $$
     The **ESP32** calculates this K/S value from the raw photodiode voltage to achieve robust, scientifically accurate concentration readings.
 
-## 📡 Multi-Modal System Architecture & Signal Chain
+##  Multi-Modal System Architecture & Signal Chain
 
 The platform integrates optical, electronic, and environmental sensing components to create a unified measurement pipeline.
 
@@ -49,7 +49,7 @@ The platform integrates optical, electronic, and environmental sensing component
 
 ---
 
-## 🧪 Proposed Real-World Methodology
+##  Proposed Real-World Methodology
 
 The final implementation and user-procedure are designed to mitigate real-world errors:
 
@@ -59,7 +59,7 @@ The final implementation and user-procedure are designed to mitigate real-world 
 4.  **Measurement:** The appropriate color LED (likely Blue) is turned on, and the photodiode measures the reflected voltage ($V_{\text{sample}}$).
 5.  **Final Calculation:** The ESP32 calculates the true reflectance ($R$) using the calibrated voltages and plugs this into the K-M equation to determine the final Sodium Concentration.
 
-## ⚠️ Real-World Challenges and Robustness
+##  Real-World Challenges and Robustness
 
 The design explicitly addresses the most common sources of inaccuracy in portable biosensors:
 
@@ -71,7 +71,7 @@ The design explicitly addresses the most common sources of inaccuracy in portabl
 | **Calibration Errors** | **Non-Linearity:** The K/S vs. Concentration graph curves at extremes. | The system defines a precise **"Linear Range"** and advises users/systems to only use the linear regression within that range for maximum accuracy. |
 | **Chemical Errors** | **Chemical Interference:** Other ions (K⁺, Cl⁻) in sweat. | Rely on the **High Selectivity** of the sodium ionophore reagent on the test strip. |
 
-## 🌐 Web-Based User Interface ("Wireless Dashboard")
+##  Web-Based User Interface ("Wireless Dashboard")
 
 The ESP32 hosts a lightweight web server and REST API for comprehensive user feedback.
 
@@ -79,7 +79,7 @@ The ESP32 hosts a lightweight web server and REST API for comprehensive user fee
 *   **Control Panel:** Includes controls for **Start Chart, Stop Chart, Calibrate, and Clean Cycle**.
 *   **System Log:** Integrated log panel displays real-time status messages, connection events, and hardware errors from the ESP32, aiding diagnostics.
 
-## 🧑‍💻 Team Members & Faculty Guide
+##  Team Members & Faculty Guide
 
 | Role | Name | Roll Number |
 | :--- | :--- | :--- |
