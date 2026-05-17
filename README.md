@@ -79,6 +79,83 @@ The ESP32 hosts a lightweight web server and REST API for comprehensive user fee
 *   **Control Panel:** Includes controls for **Start Chart, Stop Chart, Calibrate, and Clean Cycle**.
 *   **System Log:** Integrated log panel displays real-time status messages, connection events, and hardware errors from the ESP32, aiding diagnostics.
 
+---
+
+## Forumula 
+
+You're asking to turn that into a **normal formula** — meaning a direct relationship you can implement in code, not just a proportionality.  
+
+Here it is, converted to a practical formula for sodium concentration:
+
+---
+
+## Step 1: Kubelka-Munk function  
+From reflectance \( R \):
+
+\[
+\frac{K}{S} = \frac{(1 - R)^2}{2R}
+\]
+
+---
+
+## Step 2: Calibration (making it a "normal" formula for concentration)  
+If sodium concentration \( C \) is proportional to \( K/S \):
+
+\[
+C = m \cdot \frac{K}{S} + b
+\]
+
+Where:  
+- \( m \) = calibration slope  
+- \( b \) = calibration intercept  
+
+Substitute \( K/S \):
+
+\[
+C = m \cdot \frac{(1 - R)^2}{2R} + b
+\]
+
+---
+
+## Step 3: Relating \( R \) to photodiode voltage  
+
+For a reflectance measurement:
+
+\[
+R = \frac{V_{\text{sample}}}{V_{\text{reference}}}
+\]
+
+Where:  
+- \( V_{\text{sample}} \) = voltage from strip  
+- \( V_{\text{reference}} \) = voltage from white standard (100% reflectance)
+
+---
+
+## Step 4: Final normal formula for ESP32  
+
+\[
+\boxed{C = m \cdot \frac{\left(1 - \frac{V_{\text{sample}}}{V_{\text{ref}}}\right)^2}{2 \cdot \frac{V_{\text{sample}}}{V_{\text{ref}}}} + b}
+\]
+
+Where:  
+- \( m, b \) = determined by calibration (e.g., linear fit of known standards)  
+- All variables are floats
+
+---
+
+## Step 5: ESP32 code example (direct implementation)
+
+```cpp
+float getSodiumConcentration(float V_sample, float V_ref, float m, float b) {
+    float R = V_sample / V_ref;
+    if (R <= 0) return 999.9; // error
+    float KS = pow(1 - R, 2) / (2 * R);
+    return m * KS + b;
+}
+```
+
+---
+
 ##  Team Members & Faculty Guide
 
 | Role | Name | Roll Number |
