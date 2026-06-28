@@ -12,25 +12,25 @@ This work presents a novel, **strip-based, multimodal biosensing platform** for 
 
 The primary innovation is the **Dynamic Environmental Integration**—combining chemical colorimetry with real-time temperature and humidity sensing to mitigate the largest source of error: **sweat sample evaporation.**
 
-##  Core Quantification Model: Kubelka-Munk Theory
+### Core Quantification Model: Kubelka–Munk Theory
 
-Unlike transparent liquid samples which use the Beer-Lambert Law (Absorption), this project utilizes a model for opaque, reflective surfaces (test strips):
+Unlike transparent liquid samples which use the Beer–Lambert Law (absorption), this project utilizes a model for opaque, reflective surfaces (test strips).
 
-* **Model:** **Kubelka–Munk (K–M) Theory**
+- **Model:** Kubelka–Munk (K–M) Theory
 
-* **Principle:** The Kubelka–Munk theory relates the measured reflectance (**R**) of the test strip to the absorption coefficient (**K**) and the scattering coefficient (**S**).
+- **Principle:** The Kubelka–Munk theory relates the measured reflectance (R) of the test strip to the absorption coefficient (K) and the scattering coefficient (S).
 
-* **Kubelka–Munk Function:**
-  $$
-  F(R) = \frac{K}{S} = \frac{(1 - R)^2}{2R}
-  $$
+- **Kubelka–Munk Function:**
 
-* **Relationship to Sodium Concentration:**  
-  Under constant scattering conditions, the Kubelka–Munk function is proportional to the concentration of the absorbing species. Therefore, the sodium concentration can be estimated as:
-  $$
-  \text{Sodium Concentration} \propto \frac{K}{S}
-  $$
-    The **ESP32** calculates this K/S value from the raw photodiode voltage to achieve robust, scientifically accurate concentration readings.
+  F(R) = K/S = (1 − R)² / (2R)
+
+- **Relationship to Sodium Concentration:**
+
+  Under constant scattering conditions, the Kubelka–Munk function is proportional to the concentration of the absorbing species. Therefore:
+
+  Sodium Concentration ∝ K/S
+
+The ESP32 calculates this K/S value from the measured reflectance to estimate sodium concentration.
 
 ##  Multi-Modal System Architecture & Signal Chain
 
