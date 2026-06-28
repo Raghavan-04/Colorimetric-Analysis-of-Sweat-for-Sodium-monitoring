@@ -12,7 +12,7 @@ This work presents a novel, **strip-based, multimodal biosensing platform** for 
 
 The primary innovation is the **Dynamic Environmental Integration**—combining chemical colorimetry with real-time temperature and humidity sensing to mitigate the largest source of error: **sweat sample evaporation.**
 
-### Core Quantification Model: Kubelka–Munk Theory
+###  Kubelka–Munk Theory
 
 Unlike transparent liquid samples which use the Beer–Lambert Law (absorption), this project utilizes a model for opaque, reflective surfaces (test strips).
 
