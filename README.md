@@ -19,9 +19,7 @@ Unlike transparent liquid samples which use the Beer-Lambert Law (Absorption), t
 *   **Model:** **Kubelka-Munk (K-M) Theory.**
 *   **Principle:** The K-M function relates the measured Reflectance (**R**) of the test strip to two key coefficients: Absorption (**K**) and Scattering (**S**).
 *   **Key Relationship:** The final sodium concentration is directly proportional to the calculated ratio:
-    $$
-    \text{Sodium Concentration} \propto \frac{K}{S} = \frac{(1 - R)^2}{2R}
-    $$
+    $$  \text{Sodium Concentration} \propto \frac{K}{S} = \frac{(1 - R)^2}{2R} $$  
     The **ESP32** calculates this K/S value from the raw photodiode voltage to achieve robust, scientifically accurate concentration readings.
 
 ##  Multi-Modal System Architecture & Signal Chain
